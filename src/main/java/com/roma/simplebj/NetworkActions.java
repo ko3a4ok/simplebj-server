@@ -29,8 +29,12 @@ public class NetworkActions {
         return o.toString();
     }
 
-    String roundFinish() {
-        return createStakeholder("roundFinish").toString();
+    String roundFinish(int winAmount) {
+        JSONObject o = createStakeholder("roundFinish");
+        JSONObject data = new JSONObject();
+        data.put("winAmount", winAmount);
+        o.put("data", data);
+        return o.toString();
     }
 
     public String actions(long timer) {

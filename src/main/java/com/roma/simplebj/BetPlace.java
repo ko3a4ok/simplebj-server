@@ -130,7 +130,7 @@ public class BetPlace {
         System.err.println("client sent: " + str);
         JSONObject o = JSONObject.fromObject(str);
         String action = o.getString("action");
-        if ("bets".equals(action)) {
+        if ("bet".equals(action)) {
             betAmount += o.getInt("amount");
             playerActions.onPlayerBet(position, betAmount);
         } else if ("action".equals(action))  {

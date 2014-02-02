@@ -18,8 +18,11 @@ public class GameScheduler implements Runnable {
     
     public void run() {
         while (true) {
+            System.out.println("round start");
             controller.roundStart();
+            System.out.println("deal cards");
             controller.dealCards();
+            System.out.println("round finish");
             controller.roundFinish();
             
         }

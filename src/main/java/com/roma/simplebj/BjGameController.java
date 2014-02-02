@@ -52,21 +52,26 @@ public class BjGameController implements PlayerActions{
             dealCardToDealer();
     }
 
-    private synchronized void waitForActions(BetPlace place) {
-        while (place.getPoints() < 21) {
-            place.pushAction(networkActions.actions(Consts.ACTION_TIME));
-            try {
-                place.wait(Consts.ACTION_TIME);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
+    private void waitForActions(BetPlace place) {
+        synchronized (place) {
+            while (place.getPoints() < 21) {
+                place.pushAction(networkActions.actions(Consts.ACTION_TIME));
+                try {
+                    place.wait(Consts.ACTION_TIME);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                BjAction action = place.popAction();
+                if (action == BjAction.Hit) {
+                    dealerCardToPlayer(place.getPosition());
+                    continue;
+                }
+                if (action == BjAction.Double) {
+                    dealerCardToPlayer(place.getPosition());
+                    place.actionDouble();
+                }
+                return;
             }
-            BjAction action = place.popAction();
-            if (action == BjAction.Hit) continue;
-            if (action == BjAction.Double) {
-                dealerCardToPlayer(place.getPosition());
-                place.actionDouble();
-            }
-            return;
         }
     }
 
@@ -83,12 +88,19 @@ public class BjGameController implements PlayerActions{
     }
 
     void roundFinish() {
-        notifyAll(networkActions.roundFinish());
         checkConnections();
+        int dealerPoints = dealer.getPoints();
+        if (dealerPoints > 21) dealerPoints = -1;
         deck.onRoundFinish();
         for (BetPlace place : places)
-            if (place != null) place.onRoundFinish();
+            if (place != null && place.getBetAmount() > 0) {
+                int points = place.getPoints();
+                int winAmount = points > 21 || dealerPoints > points ? 0 : dealerPoints == points ? place.getBetAmount() : 2*place.getBetAmount();
+                place.pushAction(networkActions.roundFinish(winAmount));
+                place.onRoundFinish();
+            }
         dealer.onRoundFinish();
+        sleep(5000);
     }
 
     private void checkConnections() {
@@ -112,9 +124,11 @@ public class BjGameController implements PlayerActions{
     }
 
     @Override
-    public synchronized void onPlayerAction(int position, BjAction action) {
+    public void onPlayerAction(int position, BjAction action) {
         places[position].setAction(action);
-        places[position].notify();
+        synchronized (places[position]) {
+            places[position].notify();
+        }
     }
 
     @Override
