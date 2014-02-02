@@ -5,14 +5,14 @@
  */
 package com.roma.simplebj;
 
+import net.sf.json.JSONObject;
+
 import java.io.IOException;
-import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
-import java.util.concurrent.Executors;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -26,9 +26,12 @@ public class BetPlace {
     private List<Card> cards = new ArrayList<Card>();
     private PrintWriter pw;
     private Scanner sc;
+    private int position;
+    private PlayerActions playerActions;
+    private BjAction action;
 
     public BetPlace(Socket socket) {
-        
+        if (socket == null) return;
         this.socket = socket;
         try {
             pw = new PrintWriter(socket.getOutputStream(), true);
@@ -60,12 +63,24 @@ public class BetPlace {
         }
     }
 
+    public void setPosition(int position) {
+        this.position = position;
+    }
+
+    public int getPosition() {
+        return position;
+    }
+
+    public void setPlayerActions(PlayerActions playerActions) {
+        this.playerActions = playerActions;
+    }
+
     public Socket getSocket() {
         return socket;
     }
     
     
-    public int getPoint() {
+    public int getPoints() {
         int aceCount = 0;
         int point = 0;
         for (Card card: cards) {
@@ -86,19 +101,52 @@ public class BetPlace {
     public void onRoundFinish() {
         betAmount = 0;
         cards.clear();
+        action = null;
     }
 
-    void onRoundStart() {
-        
+
+    public void actionDouble() {
+        betAmount *= 2;
     }
+
+    public int getBetAmount() {
+        return betAmount;
+    }
+
 
     void pushAction(String roundStart) {
-        pw.println(roundStart);
+        try {
+            pw.println(roundStart);
+        } catch (Exception ex) {
+            try {
+                socket.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
                       
     private void performClientAction(String str) {
         System.err.println("client sent: " + str);
+        JSONObject o = JSONObject.fromObject(str);
+        String action = o.getString("action");
+        if ("bets".equals(action)) {
+            betAmount += o.getInt("amount");
+            playerActions.onPlayerBet(position, betAmount);
+        } else if ("action".equals(action))  {
+            BjAction bjAction = BjAction.valueOf(o.getString("value"));
+            playerActions.onPlayerAction(position, bjAction);
+        }
     }
 
+    public void setAction(BjAction action) {
+        this.action = action;
+    }
+
+    public BjAction popAction() {
+        BjAction bj = action;
+        action = null;
+        return bj;
+    }
 }
 

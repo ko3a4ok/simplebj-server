@@ -5,7 +5,10 @@
  */
 package com.roma.simplebj;
 
+import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
+
+import java.util.Arrays;
 
 /**
  *
@@ -18,11 +21,36 @@ public class NetworkActions {
         return obj;
     }
     
-    public String roundStart() {
-        return createStakeholder("roundStart").toString();
+    public String roundStart(long timer) {
+        JSONObject o = createStakeholder("roundStart");
+        JSONObject data = new JSONObject();
+        data.put("timer", timer);
+        o.put("data", data);
+        return o.toString();
     }
 
     String roundFinish() {
         return createStakeholder("roundFinish").toString();
+    }
+
+    public String actions(long timer) {
+        JSONObject o = createStakeholder("actions");
+        JSONArray bjAction = new JSONArray();
+        bjAction.addAll(Arrays.asList(BjAction.values()));
+        JSONObject data = new JSONObject();
+        data.put("actions", bjAction);
+        data.put("timer", timer);
+        o.put("data", data);
+        return o.toString();
+    }
+
+    public String dealCard(Card card, int position, int points) {
+        JSONObject o = createStakeholder("dealCard");
+        JSONObject data = new JSONObject();
+        data.put("position", position);
+        data.put("card", card.getJson());
+        data.put("points", points);
+        o.put("data", data);
+        return o.toString();
     }
 }

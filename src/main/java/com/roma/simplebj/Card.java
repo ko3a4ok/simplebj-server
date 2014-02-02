@@ -5,6 +5,8 @@
  */
 package com.roma.simplebj;
 
+import net.sf.json.JSONObject;
+
 /**
  *
  * @author ko3a4ok
@@ -27,13 +29,15 @@ public class Card {
         this.rank = rank;
     }
 
-    public Suit getSuit() {
-        return suit;
-    }
-
     public Rank getRank() {
         return rank;
     }
-    
+
+    public JSONObject getJson() {
+        JSONObject o = new JSONObject();
+        o.put("suit", suit);
+        o.put("rank", rank.toString().replaceAll("_", ""));
+        return o;
+    }
     
 }

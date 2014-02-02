@@ -22,6 +22,7 @@ public class Deck {
     private int cardPointer;
     public Deck() {
         createDeck();
+        shuffle();
     }
 
     private void createDeck() {
@@ -31,7 +32,7 @@ public class Deck {
                 cards.add(new Card(suit, rank));
     }
 
-    public void shuffle() {
+    private void shuffle() {
         Collections.shuffle(cards);
         randLimit = cards.size()/2 + new Random().nextInt(10);
         cardPointer = 0;

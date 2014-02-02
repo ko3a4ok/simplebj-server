@@ -18,6 +18,7 @@ public class App {
             Socket client = serverSocket.accept();
             boolean connected = controller.addClient(client);
             System.err.println("new client " + (connected ? "connected" : "rejected"));
+            if (!connected) client.close();
         }
     }
 }
